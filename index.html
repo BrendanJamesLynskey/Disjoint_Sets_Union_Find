@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Disjoint Sets (Union-Find)</title>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <style>
+  :root {
+    --amber:  #f5a623;
+    --green:  #4ecb8d;
+    --purple: #a78bfa;
+    --blue:   #60a5fa;
+    --red:    #f87171;
+    --bg:     #0a0a0f;
+    --bg2:    #10101a;
+    --bg3:    #181824;
+    --border: #2a2a3a;
+    --text:   #e8e8f0;
+    --muted:  #8888a8;
+  }
+
+  .reveal-viewport { background: var(--bg); }
+  .reveal .slides section { background: transparent; }
+
+  .reveal { font-family: 'DM Sans', sans-serif; color: var(--text); }
+  .reveal h1, .reveal h2, .reveal h3 { font-family: 'Playfair Display', serif; font-weight: 700; }
+  .reveal h1 { font-size: 1.6em; color: var(--amber); line-height: 1.1; }
+  .reveal h2 { font-size: 1.1em; color: var(--amber); margin-bottom: .2em; }
+  .reveal h3 { font-size: .78em; color: var(--green); margin-bottom: .15em; }
+  .reveal p  { font-size: .56em; line-height: 1.45; color: var(--text); }
+  .reveal li { font-size: .54em; line-height: 1.45; margin-bottom: .1em; }
+  .reveal code { font-family: 'JetBrains Mono', monospace; font-size: .72em; }
+  .reveal pre  { box-shadow: none; background: var(--bg3); border: 1px solid var(--border);
+                 border-radius: 6px; padding: .3em .5em; margin: .25em 0; }
+  .reveal pre code { font-size: .52em; line-height: 1.35; background: transparent; color: #cdd6f4; }
+
+  /* ── slide chrome ── */
+  .slide-hdr {
+    display: flex; align-items: center; gap: .4em;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: .2em; margin-bottom: .3em;
+  }
+  .slide-hdr .tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .42em; font-weight: 500;
+    color: var(--bg); background: var(--amber);
+    padding: .1em .4em; border-radius: 3px;
+    letter-spacing: .04em;
+  }
+  .slide-hdr h2 { margin: 0; font-size: .95em; }
+
+  /* ── two-column ── */
+  .cols   { display: grid; gap: .5em; }
+  .cols-2 { grid-template-columns: 1fr 1fr; }
+  .cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .cols-6040 { grid-template-columns: 6fr 4fr; }
+  .cols-4060 { grid-template-columns: 4fr 6fr; }
+
+  /* ── cards ── */
+  .card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 6px; padding: .35em .6em;
+  }
+  .card.amber { border-left: 3px solid var(--amber); }
+  .card.green { border-left: 3px solid var(--green); }
+  .card.purple{ border-left: 3px solid var(--purple); }
+  .card.blue  { border-left: 3px solid var(--blue); }
+  .card.red   { border-left: 3px solid var(--red); }
+  .card h3 { font-size: .64em; margin: 0 0 .12em; }
+  .card p  { font-size: .52em; margin: 0; color: #b8b8d0; }
+  .card ul { margin: 0; padding-left: 1em; }
+  .card li { font-size: .52em; color: #b8b8d0; margin-bottom: .02em; }
+
+  /* ── table ── */
+  .reveal table { width: 100%; border-collapse: collapse; font-size: .5em; }
+  .reveal table th { background: var(--bg3); color: var(--amber); font-weight: 600;
+                     padding: .2em .4em; border: 1px solid var(--border); text-align: left; }
+  .reveal table td { padding: .18em .4em; border: 1px solid var(--border); color: #ccc; }
+  .reveal table tr:nth-child(even) td { background: #0e0e18; }
+
+  /* ── accent spans ── */
+  .a  { color: var(--amber); font-weight: 600; }
+  .g  { color: var(--green); font-weight: 600; }
+  .p  { color: var(--purple); font-weight: 600; }
+  .b  { color: var(--blue); font-weight: 600; }
+  .r  { color: var(--red); font-weight: 600; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  /* ── SVG graph diagrams ── */
+  svg.diagram { display: block; margin: 0 auto; overflow: visible; }
+
+  /* ── pill badges ── */
+  .pill {
+    display: inline-block; font-family: 'JetBrains Mono', monospace;
+    font-size: .44em; padding: .08em .4em; border-radius: 99px;
+    border: 1px solid; margin: 0 .08em;
+  }
+  .pill.amber { color: var(--amber); border-color: var(--amber); }
+  .pill.green { color: var(--green); border-color: var(--green); }
+  .pill.purple{ color: var(--purple); border-color: var(--purple); }
+  .pill.blue  { color: var(--blue); border-color: var(--blue); }
+
+  /* ── footer — hidden ── */
+  .reveal .slide-footer { display: none; }
+  /* title slide special */
+  .title-slide h1 { font-size: 1.8em; }
+  .title-slide .subtitle {
+    font-size: .7em; color: var(--green); font-family: 'DM Sans', sans-serif;
+    font-weight: 300; letter-spacing: .04em; margin: .3em 0 .6em;
+  }
+  .title-slide .meta { font-size: .48em; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+
+  /* ── super-step animator ── */
+  .ss-row {
+    display: flex; gap: .25em; align-items: center;
+    margin: .1em 0; font-size: .55em; font-family: 'JetBrains Mono', monospace;
+  }
+  .ss-node {
+    padding: .2em .55em; border-radius: 5px; font-size: .9em;
+    background: var(--bg3); border: 1px solid var(--border); color: var(--text);
+  }
+  .ss-node.active { background: #1a2a1a; border-color: var(--green); color: var(--green); }
+  .ss-node.done   { background: #1a1a2a; border-color: var(--purple); color: var(--purple); }
+  .ss-arrow { color: var(--amber); }
+  .ss-label { font-size: .8em; color: var(--muted); margin-left: .3em; }
+
+  /* reduce default margins */
+  .reveal ul, .reveal ol { margin: .15em 0 .15em 1em; }
+.reveal .slides > section { display: flex !important; flex-direction: column !important; overflow-y: auto !important; align-items: stretch !important; justify-content: flex-start !important; }
+</style>
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+
+<!-- ═══════════════════════════════════════════════════════════════
+  SLIDE 01 — Title
+══════════════════════════════════════════════════════════════════ -->
+<section class="title-slide" data-background-color="#0a0a0f">
+  <div style="font-family:'JetBrains Mono',monospace; font-size:.5em; color:var(--muted); margin-bottom:.4em; letter-spacing:.1em;">COMPUTER SCIENCE FUNDAMENTALS SERIES</div>
+  <h1>Disjoint Sets<br>(Union-Find)</h1>
+  <div class="subtitle">
+    Union by rank &middot; Path compression &middot; Inverse Ackermann &middot;<br>
+    Kruskal's MST &middot; Connected components &middot; Amortised O(&alpha;(n))
+  </div>
+  <div style="width:60px; height:3px; background:var(--amber); margin-bottom:1.4em;"></div>
+  <div class="meta">
+    Mid-level software engineer track &nbsp;&middot;&nbsp; 20 slides
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+  SLIDE 02 — The Disjoint Set ADT
+══════════════════════════════════════════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">02</span>
+    <h2>The Disjoint Set ADT</h2>
+  </div>
+  <div class="cols cols-2">
+    <div>
+      <h3>What is a disjoint set?</h3>
+      <p>A collection of non-overlapping (disjoint) sets. Every element belongs to exactly one set at any time. Each set has a designated <em>representative</em> element.</p>
+      <ul>
+        <li><span class="a">Partition</span> &mdash; a family of disjoint subsets whose union equals the full universe</li>
+        <li><span class="a">Representative</span> &mdash; a canonical element that uniquely identifies the set</li>
+        <li><span class="a">Equivalence</span> &mdash; two elements are equivalent iff they share the same representative</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Formal definition</h3>
+      <p>Given universe <code>U = {x&#x2081;, x&#x2082;, ..., x&#x2099;}</code>:</p>
+      <ul>
+        <li>Sets <code>S&#x2081;, S&#x2082;, ..., S&#x2096;</code> such that <code>S&#x1D62; &cap; S&#x2C7C; = &empty;</code> for <code>i &ne; j</code></li>
+        <li><code>S&#x2081; &cup; S&#x2082; &cup; ... &cup; S&#x2096; = U</code></li>
+      </ul>
+      <div class="card amber" style="margin-top:.4em">
+        <p>The disjoint set data structure supports a dynamic partition that starts with singletons and merges sets over time &mdash; but never splits them.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+  SLIDE 03 — Core Operations
+══════════════════════════════════════════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">03</span>
+    <h2>Core Operations &mdash; Make-Set, Find, Union</h2>
+  </div>
+  <h3>The three operations</h3>
+  <table>
+    <thead><tr><th>Operation</th><th>Description</th><th>Effect</th></tr></thead>
+    <tbody>
+      <tr><td><span class="a">Make-Set(x)</span></td><td>Create a new set containing only <code>x</code></td><td><code>x</code> becomes its own representative</td></tr>
+      <tr><td><span class="a">Find(x)</span></td><td>Return the representative of the set containing <code>x</code></td><td>Read-only (with optimisations)</td></tr>
+      <tr><td><span class="a">Union(x, y)</span></td><td>Merge the sets containing <code>x</code> and <code>y</code></td><td>One representative chosen for the merged set</td></tr>
+    </tbody>
+  </table>
+  <h3>Typical usage pattern</h3>
+  <pre><code class="language-python">Make-Set(0), Make-Set(1), ..., Make-Set(n-1)
+Union(0, 1)
+Union(2, 3)
+Find(1) == Find(0)   # true  -- same set
+Find(1) == Find(2)   # false -- different sets
+Union(1, 3)
+Find(0) == Find(2)   # true  -- now merged</code></pre>
+  <div class="card green" style="margin-top:.2em">
+    <p><span class="g">Find</span> answers the connectivity question: are two elements in the same set? <span class="g">Union</span> establishes new connections. Neither operation ever separates elements.</p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+  SLIDE 04 — Naive Linked-List Implementation
+══════════════════════════════════════════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">04</span>
+    <h2>Naive Linked-List Implementation</h2>
+  </div>
+  <div class="cols cols-2">
+    <div>
+      <h3>Structure</h3>
+      <p>Each set is a linked list. Every node stores a pointer to the head (representative). Union appends one list to another and updates all head pointers in the shorter list.</p>
+      <h3>Complexity</h3>
+      <table>
+        <thead><tr><th>Operation</th><th>Cost</th></tr></thead>
+        <tbody>
+          <tr><td>Make-Set</td><td><code>O(1)</code></td></tr>
+          <tr><td>Find</td><td><code>O(1)</code> &mdash; follow pointer to head</td></tr>
+          <tr><td>Union</td><td><code>O(n)</code> worst case</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div>
+      <h3>The problem</h3>
+      <div class="card red">
+        <p>A sequence of <code>n - 1</code> Union operations on <code>n</code> singletons can cost <span class="r">O(n&sup2;)</span> total if we always append the longer list to the shorter.</p>
+      </div>
+      <div class="card green" style="margin-top:.3em">
+        <p>Using the <span class="g">weighted-union heuristic</span> (always append shorter to longer), the total cost drops to <code>O(m + n log n)</code>.</p>
+      </div>
+      <div class="card amber" style="margin-top:.3em">
+        <p>The linked-list approach is simple but the <code>O(n)</code> Union cost motivates the far superior forest representation.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+  SLIDE 05 — Forest Representation
+══════════════════════════════════════════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">05</span>
+    <h2>Forest Representation (Parent Pointers)</h2>
+  </div>
+  <div class="cols cols-6040">
+    <div>
+      <h3>Idea</h3>
+      <p>Represent each set as a rooted tree. Each element stores a single parent pointer. The root points to itself and is the representative.</p>
+      <pre><code class="language-python">def make_set(x):
+    parent[x] = x
+
+def find(x):
+    while parent[x] != x:
+        x = parent[x]
+    return x
+
+def union(x, y):
+    rx, ry = find(x), find(y)
+    if rx != ry:
+        parent[ry] = rx</code></pre>
+    </div>
+    <div>
+      <h3>Example</h3>
+      <pre><code>parent[]:  0  0  0  3  3
+index:     0  1  2  3  4
+
+Tree 1:    0       Tree 2:  3
+          / \                |
+         1   2               4</code></pre>
+      <h3>Complexity (naive forest)</h3>
+      <table>
+        <thead><tr><th>Operation</th><th>Cost</th></tr></thead>
+        <tbody>
+          <tr><td>Make-Set</td><td><code>O(1)</code></td></tr>
+          <tr><td>Find</td><td><code>O(n)</code> worst case</td></tr>
+          <tr><td>Union</td><td><code>O(n)</code> worst case</td></tr>
+        </tbody>
+      </table>
+      <div class="card amber" style="margin-top:.3em">
+        <p>Without heuristics, <code>n</code> Unions can build a degenerate chain of depth <code>n - 1</code>. Two optimisations fix this.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+  SLIDE 06 — Union by Rank
+══════════════════════════════════════════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">06</span>
+    <h2>Union by Rank</h2>
+  </div>
+  <div class="cols cols-6040">
+    <div>
+      <h3>Concept</h3>
+      <p>Maintain a <code>rank</code> for each root &mdash; an upper bound on the height of its subtree. When merging, attach the shorter tree under the taller one.</p>
+      <pre><code class="language-python">def make_set(x):
+    parent[x] = x
+    rank[x] = 0
+
+def union(x, y):
+    rx, ry = find(x), find(y)
+    if rx == ry:
+        return
+    if rank[rx] < rank[ry]:
+        rx, ry = ry, rx
+    parent[ry] = rx
+    if rank[rx] == rank[ry]:
+        rank[rx] += 1</code></pre>
+    </div>
+    <div>
+      <h3>Why it works</h3>
+      <ul>
+        <li>Trees with rank <code>r</code> have at least <code>2&#x02B3;</code> nodes</li>
+        <li>Maximum rank is <code>&lfloor;log&#x2082; n&rfloor;</code></li>
+        <li>Find is therefore <span class="g">O(log n)</span> worst case</li>
+      </ul>
+      <h3>Key property</h3>
+      <div class="card purple">
+        <p>Rank only increases when two trees of <em>equal</em> rank merge. A node's rank never changes once it becomes a non-root.</p>
+      </div>
+      <div class="card amber" style="margin-top:.3em">
+        <p>Union by rank alone reduces worst-case Find from <code>O(n)</code> to <code>O(log n)</code>. Combined with path compression it approaches <code>O(1)</code>.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+  SLIDE 07 — Union by Size
+══════════════════════════════════════════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">07</span>
+    <h2>Union by Size</h2>
+  </div>
+  <div class="cols cols-6040">
+    <div>
+      <h3>Track subtree sizes instead of rank</h3>
+      <p>Store the actual count of nodes in each root's subtree. Always attach the smaller tree under the larger root.</p>
+      <pre><code class="language-python">def make_set(x):
+    parent[x] = x
+    size[x] = 1
+
+def union(x, y):
+    rx, ry = find(x), find(y)
+    if rx == ry:
+        return
+    if size[rx] < size[ry]:
+        rx, ry = ry, rx
+    parent[ry] = rx
+    size[rx] += size[ry]</code></pre>
+    </div>
+    <div>
+      <h3>Comparison with union by rank</h3>
+      <table>
+        <thead><tr><th>Property</th><th>By rank</th><th>By size</th></tr></thead>
+        <tbody>
+          <tr><td>Storage</td><td>Small int</td><td>Up to <code>n</code></td></tr>
+          <tr><td>Height bound</td><td><code>&lfloor;log&#x2082; n&rfloor;</code></td><td><code>&lfloor;log&#x2082; n&rfloor;</code></td></tr>
+          <tr><td>Practical speed</td><td>Slightly faster</td><td>Slightly more memory</td></tr>
+          <tr><td>Path compression</td><td>Rank becomes stale</td><td>Size remains exact</td></tr>
+        </tbody>
+      </table>
+      <div class="card green" style="margin-top:.3em">
+        <p>Both achieve the same asymptotic bound. Union by rank is more common in textbooks; union by size is useful when you need the actual set cardinality.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+  SLIDE 08 — Path Compression
+══════════════════════════════════════════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">08</span>
+    <h2>Path Compression</h2>
+  </div>
+  <div class="cols cols-6040">
+    <div>
+      <h3>The idea</h3>
+      <p>During <code>Find(x)</code>, make every node on the path from <code>x</code> to the root point directly to the root. Flattens the tree on every query.</p>
+      <pre><code class="language-python">def find(x):
+    if parent[x] != x:
+        parent[x] = find(parent[x])
+    return parent[x]</code></pre>
+      <h3>Complexity</h3>
+      <div class="card purple">
+        <p>Path compression alone (without union by rank) gives amortised <code>O(log n)</code>. Combined with union by rank: <span class="a">O(&alpha;(n))</span> amortised.</p>
+      </div>
+    </div>
+    <div>
+      <h3>Before and after Find(4)</h3>
+      <pre><code>Before:           After:
+
+     0                 0
+     |               / | \
+     1              1  2  4
+     |              |
+     2              3
+     |
+     3
+     |
+     4</code></pre>
+      <div class="card amber" style="margin-top:.3em">
+        <p>Path compression is a <em>retrospective</em> optimisation &mdash; it does not prevent tall trees from forming, but flattens them after traversal.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+  SLIDE 09 — Path Splitting & Path Halving
+══════════════════════════════════════════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">09</span>
+    <h2>Path Splitting &amp; Path Halving</h2>
+  </div>
+  <div class="cols cols-2">
+    <div>
+      <h3>Path splitting</h3>
+      <p>Every node on the find path points to its grandparent. Single-pass, iterative.</p>
+      <pre><code class="language-python">def find(x):
+    while parent[x] != x:
+        next = parent[x]
+        parent[x] = parent[next]
+        x = next
+    return x</code></pre>
+      <h3>Path halving</h3>
+      <p>Every <em>other</em> node on the find path points to its grandparent.</p>
+      <pre><code class="language-python">def find(x):
+    while parent[x] != x:
+        parent[x] = parent[parent[x]]
+        x = parent[x]
+    return x</code></pre>
+    </div>
+    <div>
+      <h3>Comparison</h3>
+      <table>
+        <thead><tr><th>Technique</th><th>Nodes updated</th><th>Amortised</th><th>Stack</th></tr></thead>
+        <tbody>
+          <tr><td><span class="a">Full compression</span></td><td>All on path</td><td><code>O(&alpha;(n))</code></td><td><code>O(log n)</code></td></tr>
+          <tr><td><span class="g">Path splitting</span></td><td>All on path</td><td><code>O(&alpha;(n))</code></td><td><code>O(1)</code></td></tr>
+          <tr><td><span class="p">Path halving</span></td><td>~Half</td><td><code>O(&alpha;(n))</code></td><td><code>O(1)</code></td></tr>
+        </tbody>
+      </table>
+      <div class="card green" style="margin-top:.3em">
+        <p>All three achieve the same amortised bound with union by rank. Path splitting and halving are preferred in practice &mdash; iterative and stack-free.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+  SLIDE 10 — Union by Rank + Path Compression
+══════════════════════════════════════════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">10</span>
+    <h2>Union by Rank + Path Compression</h2>
+  </div>
+  <div class="cols cols-2">
+    <div>
+      <h3>The optimal combination</h3>
+      <ul>
+        <li>Trees stay shallow (rank bounds height)</li>
+        <li>Paths flatten on every Find (compression keeps future Finds fast)</li>
+        <li>Rank becomes a stale upper bound after compression, but the algorithm remains correct</li>
+      </ul>
+      <h3>Amortised complexity</h3>
+      <div class="card amber">
+        <p>For <code>m</code> operations on <code>n</code> elements:<br><br><span style="font-size:1.2em" class="a">Total: O(m &middot; &alpha;(n))</span></p>
+      </div>
+    </div>
+    <div>
+      <h3>Practical performance</h3>
+      <table>
+        <thead><tr><th>n</th><th>&alpha;(n)</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>0</td></tr>
+          <tr><td>2</td><td>1</td></tr>
+          <tr><td>16</td><td>2</td></tr>
+          <tr><td>65 536</td><td>3</td></tr>
+          <tr><td>2<sup>65536</sup></td><td>4</td></tr>
+        </tbody>
+      </table>
+      <div class="card green" style="margin-top:.3em">
+        <p>For any conceivable input size, <code>&alpha;(n) &le; 4</code>. Union-find operations are <span class="g">effectively constant time</span> in practice.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+  SLIDE 11 — Amortised Analysis — Inverse Ackermann
+══════════════════════════════════════════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">11</span>
+    <h2>Amortised Analysis &mdash; Inverse Ackermann</h2>
+  </div>
+  <div class="cols cols-2">
+    <div>
+      <h3>The Ackermann function</h3>
+      <p>A rapidly growing function defined recursively:</p>
+      <ul>
+        <li><code>A(0, j) = j + 1</code></li>
+        <li><code>A(i, 0) = A(i - 1, 1)</code> &nbsp; for <code>i &gt; 0</code></li>
+        <li><code>A(i, j) = A(i - 1, A(i, j - 1))</code> &nbsp; for <code>i, j &gt; 0</code></li>
+      </ul>
+      <h3>The inverse &alpha;(n)</h3>
+      <div class="card purple">
+        <p><code>&alpha;(n) = min { k &ge; 0 : A(k, 0) &ge; n }</code><br><br>Since <code>A</code> grows astronomically fast, <code>&alpha;</code> grows <em>unimaginably</em> slowly.</p>
+      </div>
+    </div>
+    <div>
+      <h3>Proof sketch (Tarjan, 1975)</h3>
+      <ul>
+        <li>Assign each non-root node a potential based on how far its rank is from its parent's rank</li>
+        <li>Each Find reduces the total potential</li>
+        <li>The potential drop per operation is bounded by <code>&alpha;(n)</code></li>
+      </ul>
+      <h3>Lower bound</h3>
+      <div class="card red">
+        <p>Fredman &amp; Saks (1989) proved <code>&Omega;(m &middot; &alpha;(n))</code> is a lower bound in the cell-probe model. Union by rank + path compression is <span class="a">asymptotically optimal</span>.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+  SLIDE 12 — Weighted Quick-Union
+══════════════════════════════════════════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">12</span>
+    <h2>Weighted Quick-Union</h2>
+  </div>
+  <div class="cols cols-6040">
+    <div>
+      <h3>Sedgewick's formulation</h3>
+      <p>A simplified union-find using union by size with a flat array. Popular in algorithms courses (Princeton, Coursera).</p>
+      <pre><code class="language-java">public class WeightedQuickUnionUF {
+  private int[] parent;
+  private int[] sz;
+  private int count;
+
+  public WeightedQuickUnionUF(int n) {
+    parent = new int[n];
+    sz = new int[n];
+    count = n;
+    for (int i = 0; i < n; i++) {
+      parent[i] = i;  sz[i] = 1;
+    }
+  }
+
+  public int find(int p) {
+    while (p != parent[p]) p = parent[p];
+    return p;
+  }
+
+  public void union(int p, int q) {
+    int rP = find(p), rQ = find(q);
+    if (rP == rQ) return;
+    if (sz[rP] < sz[rQ]) {
+      parent[rP] = rQ; sz[rQ] += sz[rP];
+    } else {
+      parent[rQ] = rP; sz[rP] += sz[rQ];
+    }
+    count--;
+  }
+}</code></pre>
+    </div>
+    <div>
+      <h3>Complexity</h3>
+      <table>
+        <thead><tr><th>Operation</th><th>Cost</th></tr></thead>
+        <tbody>
+          <tr><td>Find</td><td><code>O(log n)</code></td></tr>
+          <tr><td>Union</td><td><code>O(log n)</code></td></tr>
+          <tr><td>+ path compression</td><td><code>O(&alpha;(n))</code> amortised</td></tr>
+        </tbody>
+      </table>
+      <div class="card green" style="margin-top:.3em">
+        <p>Weighted quick-union is the go-to teaching implementation. Simple, efficient, and easy to extend with path compression.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+  SLIDE 13 — Persistent Union-Find
+══════════════════════════════════════════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">13</span>
+    <h2>Persistent Union-Find</h2>
+  </div>
+  <div class="cols cols-2">
+    <div>
+      <h3>Motivation</h3>
+      <p>Standard union-find is destructive &mdash; path compression and union modify the structure in place. Sometimes we need to query past versions.</p>
+      <h3>Approaches</h3>
+      <div class="card blue" style="margin-bottom:.2em">
+        <h3>Fat nodes</h3>
+        <p>Each node stores a list of (timestamp, parent) pairs. Space: <code>O(n + m)</code>, Find: <code>O(log n &middot; log m)</code>.</p>
+      </div>
+      <div class="card purple" style="margin-bottom:.2em">
+        <h3>Path copying</h3>
+        <p>Copy the path from changed node to root on each modification. Space: <code>O(m log n)</code>.</p>
+      </div>
+      <div class="card green">
+        <h3>Persistent arrays</h3>
+        <p>Sleator-Tarjan persistent arrays backing parent/rank. <code>O(log n)</code> amortised per version.</p>
+      </div>
+    </div>
+    <div>
+      <h3>Conchon-Filliâtre (2007)</h3>
+      <p>A practical persistent union-find using a semi-persistent array (backtrackable). Used in SMT solvers and proof assistants (OCaml).</p>
+      <ul>
+        <li>Current version: nearly <code>O(&alpha;(n))</code> operations</li>
+        <li>Past versions: <code>O(log n)</code> per access with rerooting</li>
+      </ul>
+      <div class="card amber" style="margin-top:.3em">
+        <p>Persistence sacrifices the <code>O(&alpha;(n))</code> amortised bound but enables version queries &mdash; essential in functional programming and backtracking search.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+  SLIDE 14 — Rollback / Offline Union-Find
+══════════════════════════════════════════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">14</span>
+    <h2>Rollback / Offline Union-Find</h2>
+  </div>
+  <div class="cols cols-2">
+    <div>
+      <h3>Rollback union-find</h3>
+      <p>Support Union and Find as usual, plus <span class="a">Rollback</span> to undo the last Union. <strong>Key constraint:</strong> do <em>not</em> use path compression (it makes rollback impossible without persistence).</p>
+      <pre><code class="language-python">stack = []
+
+def union(x, y):
+    rx, ry = find(x), find(y)
+    if rx == ry: return
+    if rank[rx] < rank[ry]:
+        rx, ry = ry, rx
+    stack.append((ry, parent[ry], rank[rx]))
+    parent[ry] = rx
+    if rank[rx] == rank[ry]:
+        rank[rx] += 1
+
+def rollback():
+    ry, old_parent, old_rank = stack.pop()
+    rx = parent[ry]
+    rank[rx] = old_rank
+    parent[ry] = old_parent</code></pre>
+    </div>
+    <div>
+      <h3>Offline union-find</h3>
+      <p>When all queries are known in advance, process them in an optimal order (e.g., divide-and-conquer on a timeline). Used in competitive programming for "dynamic connectivity" problems.</p>
+      <div class="card red" style="margin-top:.3em">
+        <h3>Trade-off</h3>
+        <p>Rollback union-find is <code>O(log n)</code> per operation (no path compression). You gain undo capability at the cost of the <code>&alpha;(n)</code> speedup.</p>
+      </div>
+      <div class="card blue" style="margin-top:.3em">
+        <h3>Typical pattern</h3>
+        <p>Divide the timeline into segments. At each node of the segment tree, apply the unions active during that segment, recurse, then rollback.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+  SLIDE 15 — Application: Kruskal's MST
+══════════════════════════════════════════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">15</span>
+    <h2>Application &mdash; Kruskal's MST</h2>
+  </div>
+  <div class="cols cols-2">
+    <div>
+      <h3>Algorithm</h3>
+      <ol>
+        <li>Sort all edges by weight</li>
+        <li>For each edge <code>(u, v, w)</code> in sorted order:<br>
+          &mdash; If <code>Find(u) &ne; Find(v)</code>, add edge to MST and <code>Union(u, v)</code><br>
+          &mdash; Otherwise skip (would create a cycle)</li>
+        <li>Stop when MST has <code>n - 1</code> edges</li>
+      </ol>
+      <h3>Why union-find is ideal</h3>
+      <ul>
+        <li>Need to test connectivity between two nodes efficiently</li>
+        <li>Need to merge components as edges are added</li>
+        <li>No need to split components</li>
+        <li>Exactly the operations disjoint sets provide</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Complexity</h3>
+      <table>
+        <thead><tr><th>Step</th><th>Cost</th></tr></thead>
+        <tbody>
+          <tr><td>Sort edges</td><td><code>O(E log E)</code></td></tr>
+          <tr><td><code>n</code> Make-Set</td><td><code>O(n)</code></td></tr>
+          <tr><td><code>2E</code> Find + <code>n-1</code> Union</td><td><code>O(E &middot; &alpha;(n))</code></td></tr>
+          <tr><td><span class="a">Total</span></td><td><span class="a">O(E log E)</span></td></tr>
+        </tbody>
+      </table>
+      <div class="card green" style="margin-top:.3em">
+        <p>Without union-find, Kruskal's would need <code>O(V)</code> connectivity checks per edge, giving <code>O(VE)</code> total. Union-find makes it <code>O(E log E)</code>.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+  SLIDE 16 — Application: Connected Components
+══════════════════════════════════════════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">16</span>
+    <h2>Application &mdash; Connected Components</h2>
+  </div>
+  <div class="cols cols-2">
+    <div>
+      <h3>Static graph</h3>
+      <pre><code class="language-python">for v in vertices:
+    make_set(v)
+
+for (u, v) in edges:
+    union(u, v)
+
+# Connected iff find(u) == find(v)</code></pre>
+      <p>Total: <code>O(V + E &middot; &alpha;(V))</code> &mdash; effectively linear.</p>
+      <h3>Dynamic connectivity (incremental)</h3>
+      <p>As edges arrive online, union-find maintains connected components without recomputation. Each new edge triggers at most one Union.</p>
+    </div>
+    <div>
+      <h3>Counting components</h3>
+      <div class="card purple">
+        <p>Track a counter initialised to <code>V</code>. Decrement on each successful Union. The counter always holds the current number of connected components.</p>
+      </div>
+      <h3>Comparison with BFS/DFS</h3>
+      <table>
+        <thead><tr><th>Method</th><th>Time</th><th>Online insert</th></tr></thead>
+        <tbody>
+          <tr><td>BFS/DFS</td><td><code>O(V + E)</code></td><td>Must rerun</td></tr>
+          <tr><td><span class="a">Union-Find</span></td><td><code>O(V + E&middot;&alpha;(V))</code></td><td><code>O(&alpha;(V))</code> per edge</td></tr>
+        </tbody>
+      </table>
+      <div class="card green" style="margin-top:.3em">
+        <p>For incremental connectivity, union-find is strictly superior to graph traversal algorithms.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+  SLIDE 17 — Application: Image Segmentation
+══════════════════════════════════════════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">17</span>
+    <h2>Application &mdash; Image Segmentation</h2>
+  </div>
+  <div class="cols cols-2">
+    <div>
+      <h3>Pixel-level segmentation</h3>
+      <p>Treat each pixel as a node. Connect adjacent pixels whose intensity difference is below a threshold.</p>
+      <pre><code class="language-python">for each pixel p:
+    make_set(p)
+
+for each adjacent pair (p, q):
+    if |intensity(p) - intensity(q)| < T:
+        union(p, q)</code></pre>
+      <h3>Performance</h3>
+      <ul>
+        <li><code>O(n log n)</code> for <code>n</code> pixels (dominated by edge sorting)</li>
+        <li>Near-linear in practice with path compression</li>
+        <li>Produces perceptually meaningful regions</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Felzenszwalb-Huttenlocher (2004)</h3>
+      <p>A graph-based segmentation algorithm using union-find at its core:</p>
+      <div class="card blue" style="margin-bottom:.2em">
+        <h3>Algorithm</h3>
+        <ul>
+          <li>Sort edges (pixel pairs) by intensity difference</li>
+          <li>Merge components if edge weight is small relative to internal variation</li>
+          <li>"Internal difference" = max edge weight in the component's MST</li>
+        </ul>
+      </div>
+      <div class="card amber">
+        <p>Union-find gives image segmentation algorithms their speed &mdash; merging millions of pixel regions in near-linear time.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+  SLIDE 18 — Application: Percolation
+══════════════════════════════════════════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">18</span>
+    <h2>Application &mdash; Percolation</h2>
+  </div>
+  <div class="cols cols-2">
+    <div>
+      <h3>The percolation model</h3>
+      <p>An <code>n &times; n</code> grid of sites, each independently open with probability <code>p</code>. The system <strong>percolates</strong> if there is a connected path of open sites from top to bottom.</p>
+      <h3>Union-find approach</h3>
+      <ul>
+        <li>Create <code>n&sup2; + 2</code> elements: one per site + virtual top + virtual bottom</li>
+        <li>Connect virtual top to all top-row sites</li>
+        <li>Connect virtual bottom to all bottom-row sites</li>
+        <li>When a site opens, Union with adjacent open sites</li>
+        <li>Percolates when <code>Find(top) == Find(bottom)</code></li>
+      </ul>
+    </div>
+    <div>
+      <h3>Monte Carlo simulation</h3>
+      <p>Randomly open sites one at a time. Track when percolation first occurs. Over many trials, estimate the <span class="a">percolation threshold p*</span>.</p>
+      <div class="card purple">
+        <p>For a square lattice: <span class="p">p* &asymp; 0.5927</span> (site percolation)</p>
+      </div>
+      <h3>Why union-find?</h3>
+      <div class="card green">
+        <p>Each site opening requires up to 4 Union operations. Testing for percolation is a single Find comparison. Total cost per simulation: <code>O(n&sup2; &middot; &alpha;(n&sup2;))</code>.</p>
+      </div>
+      <div class="card amber" style="margin-top:.2em">
+        <p>Percolation is a classic application from statistical physics. Union-find enables Monte Carlo estimation with millions of trials.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+  SLIDE 19 — Equivalence Classes
+══════════════════════════════════════════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">19</span>
+    <h2>Equivalence Classes</h2>
+  </div>
+  <div class="cols cols-2">
+    <div>
+      <h3>Mathematical connection</h3>
+      <p>A disjoint set maintains equivalence classes under a relation that is:</p>
+      <ul>
+        <li><span class="a">Reflexive</span> &mdash; <code>x ~ x</code> (Make-Set ensures every element is equivalent to itself)</li>
+        <li><span class="g">Symmetric</span> &mdash; <code>x ~ y &rArr; y ~ x</code> (Union is symmetric)</li>
+        <li><span class="p">Transitive</span> &mdash; <code>x ~ y, y ~ z &rArr; x ~ z</code> (maintained through shared representatives)</li>
+      </ul>
+      <h3>Congruence closure</h3>
+      <div class="card blue">
+        <p>Extend union-find to handle function symbols: if <code>a ~ b</code> then <code>f(a) ~ f(b)</code>. Used in SMT solvers for the theory of equality with uninterpreted functions.</p>
+      </div>
+    </div>
+    <div>
+      <h3>Applications in compilers &amp; type systems</h3>
+      <div class="card amber" style="margin-bottom:.2em">
+        <h3>Type unification</h3>
+        <p>In Hindley-Milner type inference, union-find merges type variables when constraints are discovered.</p>
+      </div>
+      <div class="card green" style="margin-bottom:.2em">
+        <h3>Register coalescing</h3>
+        <p>Merge registers that must hold the same value during register allocation.</p>
+      </div>
+      <div class="card purple">
+        <h3>Common subexpression elimination</h3>
+        <p>Identify equivalent expressions to avoid redundant computation.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+  SLIDE 20 — Summary & Further Reading
+══════════════════════════════════════════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">20</span>
+    <h2>Summary &amp; Further Reading</h2>
+  </div>
+  <div class="cols cols-2">
+    <div>
+      <h3>Key takeaways</h3>
+      <ul>
+        <li>The disjoint set ADT supports Make-Set, Find, and Union &mdash; a dynamic partition that only merges</li>
+        <li>Naive implementations cost <code>O(n)</code> per op; the forest representation is the foundation for all efficient variants</li>
+        <li>Union by rank keeps trees shallow &mdash; <code>O(log n)</code> worst case</li>
+        <li>Path compression flattens trees during Find &mdash; combined with rank: <span class="a">O(&alpha;(n))</span> amortised</li>
+        <li><code>&alpha;(n) &le; 4</code> for all practical <code>n</code> &mdash; effectively constant</li>
+        <li>Persistent and rollback variants trade <code>O(&alpha;(n))</code> for version access or undo</li>
+        <li>Applications: Kruskal's MST, connectivity, percolation, image segmentation, type inference</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Recommended reading</h3>
+      <table>
+        <thead><tr><th>Source</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><span class="a">Tarjan (1975)</span></td><td>Original inverse Ackermann analysis</td></tr>
+          <tr><td><span class="a">CLRS Ch. 21</span></td><td>Data Structures for Disjoint Sets</td></tr>
+          <tr><td><span class="a">Sedgewick &amp; Wayne</span></td><td><em>Algorithms, 4th ed.</em> &mdash; Union-Find case study</td></tr>
+          <tr><td><span class="a">Fredman &amp; Saks</span></td><td>The &Omega;(&alpha;(n)) lower bound (1989)</td></tr>
+          <tr><td><span class="a">Conchon &amp; Filliâtre</span></td><td>Persistent Union-Find (2007)</td></tr>
+          <tr><td><span class="a">Felzenszwalb &amp; Huttenlocher</span></td><td>Graph-Based Image Segmentation (2004)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+</div><!-- /slides -->
+</div><!-- /reveal -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/plugin/highlight/highlight.min.js"></script>
+<script>
+Reveal.initialize({
+  hash: true,
+  slideNumber: 'c/t',
+  transition: 'fade',
+  transitionSpeed: 'fast',
+  controls: true,
+  progress: true,
+  center: false,
+  width: 1100,
+  height: 900,
+  margin: 0.01,
+  plugins: [RevealHighlight],
+  highlight: { theme: 'monokai' }
+});
+</script>
+<script>
+(function(){
+  var h = Reveal.getConfig().height || 900;
+  var m = Reveal.getConfig().margin || 0.02;
+  var maxH = Math.floor(h * (1 - 2 * m)) + 'px';
+  function fixSlides(){
+    document.querySelectorAll('.reveal .slides>section,.reveal .slides>section>section').forEach(function(s){
+      s.style.display = 'block';
+      s.style.maxHeight = maxH;
+    });
+  }
+  Reveal.on('ready', fixSlides);
+  Reveal.on('slidechanged', fixSlides);
+})();
+</script>
+</body>
+</html>
