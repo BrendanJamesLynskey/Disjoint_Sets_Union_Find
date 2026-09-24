@@ -6,7 +6,7 @@
   <title>Disjoint Sets (Union-Find)</title>
 
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/white.min.css">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,17 +14,17 @@
 
   <style>
   :root {
-    --amber:  #f5a623;
-    --green:  #4ecb8d;
-    --purple: #a78bfa;
-    --blue:   #60a5fa;
-    --red:    #f87171;
-    --bg:     #0a0a0f;
-    --bg2:    #10101a;
-    --bg3:    #181824;
-    --border: #2a2a3a;
-    --text:   #e8e8f0;
-    --muted:  #8888a8;
+    --amber:  #bf7d10;
+    --green:  #1c815a;
+    --purple: #6435bc;
+    --blue:   #2b3dc5;
+    --red:    #db3a30;
+    --bg:     #fafaf8;
+    --bg2:    #f1f1ee;
+    --bg3:    #eaeae6;
+    --border: #d1d1cb;
+    --text:   #161616;
+    --muted:  #6a6a63;
   }
 
   .reveal-viewport { background: var(--bg); }
@@ -40,7 +40,7 @@
   .reveal code { font-family: 'JetBrains Mono', monospace; font-size: .72em; }
   .reveal pre  { box-shadow: none; background: var(--bg3); border: 1px solid var(--border);
                  border-radius: 6px; padding: .3em .5em; margin: .25em 0; }
-  .reveal pre code { font-size: .52em; line-height: 1.35; background: transparent; color: #cdd6f4; }
+  .reveal pre code { font-size: .52em; line-height: 1.35; background: transparent; color: #242422; }
 
   /* ── slide chrome ── */
   .slide-hdr {
@@ -75,16 +75,16 @@
   .card.blue  { border-left: 3px solid var(--blue); }
   .card.red   { border-left: 3px solid var(--red); }
   .card h3 { font-size: .64em; margin: 0 0 .12em; }
-  .card p  { font-size: .52em; margin: 0; color: #b8b8d0; }
+  .card p  { font-size: .52em; margin: 0; color: #3d3d39; }
   .card ul { margin: 0; padding-left: 1em; }
-  .card li { font-size: .52em; color: #b8b8d0; margin-bottom: .02em; }
+  .card li { font-size: .52em; color: #3d3d39; margin-bottom: .02em; }
 
   /* ── table ── */
   .reveal table { width: 100%; border-collapse: collapse; font-size: .5em; }
   .reveal table th { background: var(--bg3); color: var(--amber); font-weight: 600;
                      padding: .2em .4em; border: 1px solid var(--border); text-align: left; }
-  .reveal table td { padding: .18em .4em; border: 1px solid var(--border); color: #ccc; }
-  .reveal table tr:nth-child(even) td { background: #0e0e18; }
+  .reveal table td { padding: .18em .4em; border: 1px solid var(--border); color: #2d2d2b; }
+  .reveal table tr:nth-child(even) td { background: #f3f3f1; }
 
   /* ── accent spans ── */
   .a  { color: var(--amber); font-weight: 600; }
@@ -127,8 +127,8 @@
     padding: .2em .55em; border-radius: 5px; font-size: .9em;
     background: var(--bg3); border: 1px solid var(--border); color: var(--text);
   }
-  .ss-node.active { background: #1a2a1a; border-color: var(--green); color: var(--green); }
-  .ss-node.done   { background: #1a1a2a; border-color: var(--purple); color: var(--purple); }
+  .ss-node.active { background: #d3e1d5; border-color: var(--green); color: var(--green); }
+  .ss-node.done   { background: #e6e6e2; border-color: var(--purple); color: var(--purple); }
   .ss-arrow { color: var(--amber); }
   .ss-label { font-size: .8em; color: var(--muted); margin-left: .3em; }
 
@@ -136,6 +136,7 @@
   .reveal ul, .reveal ol { margin: .15em 0 .15em 1em; }
 .reveal .slides > section { display: flex !important; flex-direction: column !important; overflow-y: auto !important; align-items: stretch !important; justify-content: flex-start !important; }
 </style>
+<style>.reveal .slide-number{background-color:transparent}</style>
 </head>
 <body>
 <div class="reveal">
@@ -144,7 +145,7 @@
 <!-- ═══════════════════════════════════════════════════════════════
   SLIDE 01 — Title
 ══════════════════════════════════════════════════════════════════ -->
-<section class="title-slide" data-background-color="#0a0a0f">
+<section class="title-slide" data-background-color="#fafaf8">
   <div style="font-family:'JetBrains Mono',monospace; font-size:.5em; color:var(--muted); margin-bottom:.4em; letter-spacing:.1em;">COMPUTER SCIENCE FUNDAMENTALS SERIES</div>
   <h1>Disjoint Sets<br>(Union-Find)</h1>
   <div class="subtitle">
@@ -160,7 +161,7 @@
 <!-- ═══════════════════════════════════════════════════════════════
   SLIDE 02 — The Disjoint Set ADT
 ══════════════════════════════════════════════════════════════════ -->
-<section data-background-color="#0a0a0f">
+<section data-background-color="#fafaf8">
   <div class="slide-hdr">
     <span class="tag">02</span>
     <h2>The Disjoint Set ADT</h2>
@@ -192,7 +193,7 @@
 <!-- ═══════════════════════════════════════════════════════════════
   SLIDE 03 — Core Operations
 ══════════════════════════════════════════════════════════════════ -->
-<section data-background-color="#0a0a0f">
+<section data-background-color="#fafaf8">
   <div class="slide-hdr">
     <span class="tag">03</span>
     <h2>Core Operations &mdash; Make-Set, Find, Union</h2>
@@ -222,7 +223,7 @@ Find(0) == Find(2)   # true  -- now merged</code></pre>
 <!-- ═══════════════════════════════════════════════════════════════
   SLIDE 04 — Naive Linked-List Implementation
 ══════════════════════════════════════════════════════════════════ -->
-<section data-background-color="#0a0a0f">
+<section data-background-color="#fafaf8">
   <div class="slide-hdr">
     <span class="tag">04</span>
     <h2>Naive Linked-List Implementation</h2>
@@ -259,7 +260,7 @@ Find(0) == Find(2)   # true  -- now merged</code></pre>
 <!-- ═══════════════════════════════════════════════════════════════
   SLIDE 05 — Forest Representation
 ══════════════════════════════════════════════════════════════════ -->
-<section data-background-color="#0a0a0f">
+<section data-background-color="#fafaf8">
   <div class="slide-hdr">
     <span class="tag">05</span>
     <h2>Forest Representation (Parent Pointers)</h2>
@@ -308,7 +309,7 @@ Tree 1:    0       Tree 2:  3
 <!-- ═══════════════════════════════════════════════════════════════
   SLIDE 06 — Union by Rank
 ══════════════════════════════════════════════════════════════════ -->
-<section data-background-color="#0a0a0f">
+<section data-background-color="#fafaf8">
   <div class="slide-hdr">
     <span class="tag">06</span>
     <h2>Union by Rank</h2>
@@ -352,7 +353,7 @@ def union(x, y):
 <!-- ═══════════════════════════════════════════════════════════════
   SLIDE 07 — Union by Size
 ══════════════════════════════════════════════════════════════════ -->
-<section data-background-color="#0a0a0f">
+<section data-background-color="#fafaf8">
   <div class="slide-hdr">
     <span class="tag">07</span>
     <h2>Union by Size</h2>
@@ -395,7 +396,7 @@ def union(x, y):
 <!-- ═══════════════════════════════════════════════════════════════
   SLIDE 08 — Path Compression
 ══════════════════════════════════════════════════════════════════ -->
-<section data-background-color="#0a0a0f">
+<section data-background-color="#fafaf8">
   <div class="slide-hdr">
     <span class="tag">08</span>
     <h2>Path Compression</h2>
@@ -436,7 +437,7 @@ def union(x, y):
 <!-- ═══════════════════════════════════════════════════════════════
   SLIDE 09 — Path Splitting & Path Halving
 ══════════════════════════════════════════════════════════════════ -->
-<section data-background-color="#0a0a0f">
+<section data-background-color="#fafaf8">
   <div class="slide-hdr">
     <span class="tag">09</span>
     <h2>Path Splitting &amp; Path Halving</h2>
@@ -479,7 +480,7 @@ def union(x, y):
 <!-- ═══════════════════════════════════════════════════════════════
   SLIDE 10 — Union by Rank + Path Compression
 ══════════════════════════════════════════════════════════════════ -->
-<section data-background-color="#0a0a0f">
+<section data-background-color="#fafaf8">
   <div class="slide-hdr">
     <span class="tag">10</span>
     <h2>Union by Rank + Path Compression</h2>
@@ -519,7 +520,7 @@ def union(x, y):
 <!-- ═══════════════════════════════════════════════════════════════
   SLIDE 11 — Amortised Analysis — Inverse Ackermann
 ══════════════════════════════════════════════════════════════════ -->
-<section data-background-color="#0a0a0f">
+<section data-background-color="#fafaf8">
   <div class="slide-hdr">
     <span class="tag">11</span>
     <h2>Amortised Analysis &mdash; Inverse Ackermann</h2>
@@ -556,7 +557,7 @@ def union(x, y):
 <!-- ═══════════════════════════════════════════════════════════════
   SLIDE 12 — Weighted Quick-Union
 ══════════════════════════════════════════════════════════════════ -->
-<section data-background-color="#0a0a0f">
+<section data-background-color="#fafaf8">
   <div class="slide-hdr">
     <span class="tag">12</span>
     <h2>Weighted Quick-Union</h2>
@@ -616,7 +617,7 @@ def union(x, y):
 <!-- ═══════════════════════════════════════════════════════════════
   SLIDE 13 — Persistent Union-Find
 ══════════════════════════════════════════════════════════════════ -->
-<section data-background-color="#0a0a0f">
+<section data-background-color="#fafaf8">
   <div class="slide-hdr">
     <span class="tag">13</span>
     <h2>Persistent Union-Find</h2>
@@ -656,7 +657,7 @@ def union(x, y):
 <!-- ═══════════════════════════════════════════════════════════════
   SLIDE 14 — Rollback / Offline Union-Find
 ══════════════════════════════════════════════════════════════════ -->
-<section data-background-color="#0a0a0f">
+<section data-background-color="#fafaf8">
   <div class="slide-hdr">
     <span class="tag">14</span>
     <h2>Rollback / Offline Union-Find</h2>
@@ -701,7 +702,7 @@ def rollback():
 <!-- ═══════════════════════════════════════════════════════════════
   SLIDE 15 — Application: Kruskal's MST
 ══════════════════════════════════════════════════════════════════ -->
-<section data-background-color="#0a0a0f">
+<section data-background-color="#fafaf8">
   <div class="slide-hdr">
     <span class="tag">15</span>
     <h2>Application &mdash; Kruskal's MST</h2>
@@ -745,7 +746,7 @@ def rollback():
 <!-- ═══════════════════════════════════════════════════════════════
   SLIDE 16 — Application: Connected Components
 ══════════════════════════════════════════════════════════════════ -->
-<section data-background-color="#0a0a0f">
+<section data-background-color="#fafaf8">
   <div class="slide-hdr">
     <span class="tag">16</span>
     <h2>Application &mdash; Connected Components</h2>
@@ -787,7 +788,7 @@ for (u, v) in edges:
 <!-- ═══════════════════════════════════════════════════════════════
   SLIDE 17 — Application: Image Segmentation
 ══════════════════════════════════════════════════════════════════ -->
-<section data-background-color="#0a0a0f">
+<section data-background-color="#fafaf8">
   <div class="slide-hdr">
     <span class="tag">17</span>
     <h2>Application &mdash; Image Segmentation</h2>
@@ -830,7 +831,7 @@ for each adjacent pair (p, q):
 <!-- ═══════════════════════════════════════════════════════════════
   SLIDE 18 — Application: Percolation
 ══════════════════════════════════════════════════════════════════ -->
-<section data-background-color="#0a0a0f">
+<section data-background-color="#fafaf8">
   <div class="slide-hdr">
     <span class="tag">18</span>
     <h2>Application &mdash; Percolation</h2>
@@ -868,7 +869,7 @@ for each adjacent pair (p, q):
 <!-- ═══════════════════════════════════════════════════════════════
   SLIDE 19 — Equivalence Classes
 ══════════════════════════════════════════════════════════════════ -->
-<section data-background-color="#0a0a0f">
+<section data-background-color="#fafaf8">
   <div class="slide-hdr">
     <span class="tag">19</span>
     <h2>Equivalence Classes</h2>
@@ -908,7 +909,7 @@ for each adjacent pair (p, q):
 <!-- ═══════════════════════════════════════════════════════════════
   SLIDE 20 — Summary & Further Reading
 ══════════════════════════════════════════════════════════════════ -->
-<section data-background-color="#0a0a0f">
+<section data-background-color="#fafaf8">
   <div class="slide-hdr">
     <span class="tag">20</span>
     <h2>Summary &amp; Further Reading</h2>
